@@ -1,0 +1,269 @@
+// Mooney Lab Mode
+//
+// This text file contains all of the tools necessary to quantify charcoal fragments in an entire petri dish
+// using imageJ and a usb connected digital microscope. Specially designed for color thresholding in the Mooney lab.
+//  
+// Grant Snitker
+// Cultural Resource Sciences
+// New Mexico Consortium
+// gsnitker@newmexicoconsortium.org
+// 2022
+
+var samplenum = "";
+var depths =  "";
+var date =  "";
+var analyst = "";
+var notes =  "";
+
+    macro "Set Wand Selection Tool  [x]" {
+     run("Wand Tool...", "tolerance=30 mode=8-connected smooth");
+     setTool("wand");
+        }
+    
+    macro "Set Polygon Selection Tool  [c]" {
+        setTool("polygon");
+        }
+
+    macro "Set Oval Selection Tool  [v]" {
+        setTool("oval"); 
+        }
+
+    macro "Set color threshold, convert to binary, and measure all fragments (using ROI) [z]" {
+    // Enter Metadata
+        Dialog.create("CharTool");
+       Dialog.addString("      Sample Number:", "Enter Sample Number", 23); 
+       Dialog.addString("      Depth Range (cm):", "Enter Depth Range", 23); 
+       Dialog.addString("      Date:", "Date of Analysis", 23); 
+       Dialog.addString("      Analyst:", "Analyst Name or Initials", 23); 
+       Dialog.addString("      Other Info:", "Other Pertinent Information", 23); 
+       Dialog.show;
+       samplenum =  Dialog.getString();
+       depths =  Dialog.getString();
+       date =  Dialog.getString();
+       analyst =  Dialog.getString();
+       notes =  Dialog.getString();
+    
+   
+    path = getInfo("image.directory");
+	window = getInfo("image.filename");
+    path = path+window;
+
+        run("Add Selection...");
+        run("Overlay Options...", "stroke=green width=5 fill=none set apply");  
+        
+    run("Color Threshold...");
+    
+    waitForUser("CharTool", "1. Adjust color threshold method, color space, and values until charcoal fragments are highlighted in red.\n \n2. When threshold looks correct, click OK to close this dialogue and continue.");
+
+     selectWindow("Threshold Color");
+     run("Close");
+     setOption("BlackBackground", false);
+     run("Convert to Mask");
+     
+     run("Restore Selection");
+     
+     run("Analyze Particles...", "exclude include overlay add");
+ 
+     close("*");
+     open(path);
+     roiManager("Show All without labels");
+     run("Wand Tool...", "tolerance=30 mode=8-connected smooth");
+     setTool("wand");
+     run("Select None"); 
+     
+     waitForUser("CharTool", "When you have completed all adjustments to the charcoal selection, click OK to measure charcoal.");
+     
+      roiManager("Measure");
+    
+    // create rectangualrity measuremnet, access metadata, and add all to results table
+        for (i=0; i<nResults; i++) {
+        p = getResult("Perim.", i);
+        w = getResult("Width", i);
+        h = getResult("Height", i);
+        rect = p / ((w + h)*2);
+        setResult("Rect", i, rect);
+        setResult("Sample", i, samplenum);
+	    setResult("Depths", i, depths);
+        setResult("Date", i, date);
+        setResult("Analyst", i, analyst);
+        setResult("Other info", i, notes);
+        updateResults();
+    }
+    // delete selection and close roi manager
+    //roiManager("Select", 0);
+    //roiManager("Delete");
+    selectWindow("ROI Manager");
+    run("Close");
+        Dialog.create("CharTool");
+    Dialog.addMessage("Save Results?");
+    items = newArray("Yes", "No");
+    Dialog.addChoice(" ", items, "Yes");
+    Dialog.show;
+    choice = Dialog.getChoice();
+       if (choice == "Yes") {
+       
+      // close(imagedup);
+     saveAs("Results");
+    selectWindow("Results");
+    run("Close");
+    }
+    
+
+    
+    Dialog.create("CharTool");
+    Dialog.addMessage("Open another image for analysis?");
+    items = newArray("Yes", "No");
+    Dialog.addChoice(" ", items, "Yes");
+    Dialog.show;
+    choice = Dialog.getChoice();
+       if (choice == "Yes") {
+       close("*");
+      // close(imagedup);
+    open();
+    }
+             }
+     
+    macro "Open New Image [q]" {
+       waitForUser("CharTool", "Load an image for analysis.");
+       open();
+        }
+     
+     
+    var pmCmds = newMenu("Popup Menu",
+    newArray("Analyze petri dish..."));
+
+    macro "Popup Menu" {
+      cmd = getArgument();
+      if (cmd=="Analyze petri dish...") {
+   
+    // Enter Metadata
+        Dialog.create("CharTool");
+       Dialog.addString("      Sample Number:", "Enter Sample Number", 23); 
+       Dialog.addString("      Depth Range (cm):", "Enter Depth Range", 23); 
+       Dialog.addString("      Date:", "Date of Analysis", 23); 
+       Dialog.addString("      Analyst:", "Analyst Name or Initials", 23); 
+       Dialog.addString("      Other Info:", "Other Pertinent Information", 23); 
+       Dialog.show;
+       samplenum =  Dialog.getString();
+       depths =  Dialog.getString();
+       date =  Dialog.getString();
+       analyst =  Dialog.getString();
+       notes =  Dialog.getString();
+    
+   
+    path = getInfo("image.directory");
+	window = getInfo("image.filename");
+    path = path+window;
+
+        run("Add Selection...");
+        run("Overlay Options...", "stroke=green width=5 fill=none set apply");  
+        
+    run("Color Threshold...");
+    
+    waitForUser("CharTool", "1. Adjust color threshold method, color space, and values until charcoal fragments are highlighted in red.\n \n2. When threshold looks correct, click OK to close this dialogue and continue.");
+
+     selectWindow("Threshold Color");
+     run("Close");
+     setOption("BlackBackground", false);
+     run("Convert to Mask");
+     
+     run("Restore Selection");
+     
+     run("Analyze Particles...", "exclude include overlay add");
+ 
+     close("*");
+     open(path);
+     roiManager("Show All without labels");
+     run("Wand Tool...", "tolerance=30 mode=8-connected smooth");
+     setTool("wand");
+     run("Select None"); 
+     
+     waitForUser("CharTool", "When you have completed all adjustments to the charcoal selection, click OK to measure charcoal.");
+     
+      roiManager("Measure");
+    
+    // create rectangualrity measuremnet, access metadata, and add all to results table
+        for (i=0; i<nResults; i++) {
+        p = getResult("Perim.", i);
+        w = getResult("Width", i);
+        h = getResult("Height", i);
+        rect = p / ((w + h)*2);
+        setResult("Rect", i, rect);
+        setResult("Sample", i, samplenum);
+	    setResult("Depths", i, depths);
+        setResult("Date", i, date);
+        setResult("Analyst", i, analyst);
+        setResult("Other info", i, notes);
+        updateResults();
+    }
+    // delete selection and close roi manager
+    //roiManager("Select", 0);
+    //roiManager("Delete");
+    selectWindow("ROI Manager");
+    run("Close");
+        Dialog.create("CharTool");
+    Dialog.addMessage("Save Results?");
+    items = newArray("Yes", "No");
+    Dialog.addChoice(" ", items, "Yes");
+    Dialog.show;
+    choice = Dialog.getChoice();
+       if (choice == "Yes") {
+       
+      // close(imagedup);
+     saveAs("Results");
+    selectWindow("Results");
+    run("Close");
+    }
+    
+
+    
+    Dialog.create("CharTool");
+    Dialog.addMessage("Open another image for analysis?");
+    items = newArray("Yes", "No");
+    Dialog.addChoice(" ", items, "Yes");
+    Dialog.show;
+    choice = Dialog.getChoice();
+       if (choice == "Yes") {
+       close("*");
+      // close(imagedup);
+    open();
+    }
+        }}
+     
+    
+    macro "Open Instructions  [h]" {
+        Dialog.create("CharTool");
+        Dialog.addMessage("Press [X] to use the Wand Selection Tool");
+        Dialog.addMessage("Press [C] to use the Polygon Selection Tool");
+        Dialog.addMessage("Press [V] to use the Oval Selection Tool");
+        Dialog.addMessage(" ");
+        Dialog.addMessage("Press [Q] to open a new image");
+        Dialog.addMessage("Press [W] to reset scale");
+        Dialog.addMessage("Press [H] to see these instructions again");
+        Dialog.addMessage(" ");
+        Dialog.addMessage("Right click (default) or press [Z] to measure all charcoal in the petri dish");
+        Dialog.show;
+        }
+    
+    
+ macro "Reset scale [w]" {
+        setTool("line");
+       waitForUser("Set Scale", "Use Draw Line tool to select a known length\nClick OK when finished");
+       run("Set Scale...");
+       Dialog.create("CharTool");
+       Dialog.addMessage("Add visible scale bar to images?");
+       items = newArray("Yes", "No");
+       Dialog.addChoice("                  ", items, "Yes");
+       Dialog.show;
+       choice1c = Dialog.getChoice();
+       if (choice1c == "Yes") {
+       
+        Dialog.create("CharTool");
+       Dialog.addString("Length of scale bar", "length in units", 15); 
+        Dialog.show;
+       scalebar =  Dialog.getString();
+       
+       run("Scale Bar...", "width=scalebar height=6 font=16 color=Green background=None location=[Lower Left] overlay");
+       }
+       if (choice1c == "No") {};
+        }
